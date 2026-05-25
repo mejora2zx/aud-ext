@@ -635,7 +635,20 @@
 
   async function iniciarScanner(){
     try{
-      videoStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
+      videoStream=await navigator.mediaDevices.getUserMedia({
+        video:{
+          facingMode:'environment',
+          width:{ideal:1920},
+          height:{ideal:1080},
+          focusMode:'continuous',
+          advanced:[{focusMode:'continuous'}]
+        }
+      });
+      // Aplicar enfoque continuo si está disponible
+      const track = videoStream.getVideoTracks()[0];
+      if(track && track.applyConstraints){
+        track.applyConstraints({advanced:[{focusMode:'continuous'}]}).catch(()=>{});
+      }
       const video=document.getElementById('qr-video');
       video.srcObject=videoStream;
       document.getElementById('qr-wrap').style.display='block';
