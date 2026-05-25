@@ -472,12 +472,26 @@
       </div>
 
       <div class="ext-card" id="ext-card">
-        <div class="ext-title"><i class="ti ti-circle-check"></i> Extintor identificado</div>
-        <div class="ext-pills">
+        <div class="ext-title"><i class="ti ti-circle-check"></i> Extintor identificado — edita si es un equipo de repuesto</div>
+        <div class="ext-pills" style="margin-bottom:10px;">
           <div class="ext-pill">No. <strong id="card-no">—</strong></div>
           <div class="ext-pill">Ubicación: <strong id="card-loc">—</strong></div>
-          <div class="ext-pill">Agente: <strong id="card-agente">—</strong></div>
-          <div class="ext-pill">Capacidad: <strong id="card-cap">—</strong></div>
+        </div>
+        <div class="row" style="margin-bottom:0;">
+          <div>
+            <label>Agente Químico</label>
+            <select id="card-agente-sel">
+              <option value="PQS">PQS</option>
+              <option value="CO2">CO₂</option>
+              <option value="PQ">PQ (NOFF)</option>
+              <option value="Agua">Agua presurizada</option>
+              <option value="Espuma">Espuma</option>
+            </select>
+          </div>
+          <div>
+            <label>Capacidad</label>
+            <input type="text" id="card-cap-input" placeholder="Ej. 9 kg">
+          </div>
         </div>
         <span class="rescan" onclick="rescanear()">↩ Escanear otro extintor</span>
       </div>
@@ -658,8 +672,10 @@
   function mostrarCard(d){
     document.getElementById('card-no').textContent=d.no;
     document.getElementById('card-loc').textContent=d.ubicacion;
-    document.getElementById('card-agente').textContent=d.agente||'—';
-    document.getElementById('card-cap').textContent=d.capacidad||'—';
+    // Seleccionar agente en el dropdown
+    const agenteSelect = document.getElementById('card-agente-sel');
+    if(d.agente){ for(let i=0;i<agenteSelect.options.length;i++){ if(agenteSelect.options[i].value===d.agente){agenteSelect.selectedIndex=i;break;} } }
+    document.getElementById('card-cap-input').value=d.capacidad||'';
     document.getElementById('ext-card').style.display='block';
     document.getElementById('qr-btn').style.display='none';
   }
@@ -711,8 +727,8 @@
       mes:getMesActual(),
       no:extActual.no,
       ubicacion:extActual.ubicacion,
-      agente:extActual.agente||'',
-      capacidad:extActual.capacidad||'',
+      agente:document.getElementById('card-agente-sel').value||'',
+      capacidad:document.getElementById('card-cap-input').value||'',
       ultima_recarga:fecha,
       ...condiciones,
       nomina:guardiaActual.nomina,
@@ -778,6 +794,8 @@
     document.getElementById('observaciones').value='';
     document.querySelectorAll('.cond-select').forEach(s=>s.selectedIndex=0);
     guardiaActual=null;extActual=null;
+    document.getElementById('card-agente-sel').selectedIndex=0;
+    document.getElementById('card-cap-input').value='';
     document.getElementById('guard-display').textContent='Escribe el número de nómina';
     document.getElementById('guard-display').className='guard-display';
     document.getElementById('ext-card').style.display='none';
