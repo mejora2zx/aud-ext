@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>QR Extintores — Zubex</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; background: #f0f2f9; padding: 20px; }
+  .page-title { text-align: center; color: #0D18A8; font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .page-sub { text-align: center; color: #666; font-size: 12px; margin-bottom: 6px; }
+  .print-btn {
+    display: block; margin: 0 auto 20px;
+    background: #0D18A8; color: #fff;
+    border: none; border-radius: 8px;
+    padding: 10px 28px; font-size: 14px;
+    cursor: pointer; font-family: Arial, sans-serif;
+  }
+  .print-btn:hover { background: #0a138a; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    max-width: 940px;
+    margin: 0 auto;
+  }
+  .card {
+    background: white;
+    border: 2px solid #0D18A8;
+    border-radius: 10px;
+    padding: 10px 8px;
+    text-align: center;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  .card .num {
+    font-size: 12px; font-weight: 700; color: #0D18A8;
+    background: #E8EAFF; border-radius: 20px;
+    padding: 2px 10px; display: inline-block; margin-bottom: 6px;
+  }
+  .card .qr-wrap { display: flex; justify-content: center; margin-bottom: 6px; }
+  .card .qr-wrap canvas, .card .qr-wrap img { width: 96px !important; height: 96px !important; }
+  .card .ubic { font-size: 9px; font-weight: 600; color: #1A1C2E; line-height: 1.3; word-break: break-word; }
+  .card .marca { font-size: 8px; color: #0D18A8; margin-top: 3px; }
+  .footer { text-align: center; font-size: 11px; color: #999; margin-top: 24px; }
+  @media print {
+    body { background: white; padding: 8px; }
+    .page-title, .page-sub, .print-btn, .footer { display: none; }
+    .grid { gap: 6px; max-width: 100%; }
+    .card { border: 1.5px solid #0D18A8; padding: 7px 6px; border-radius: 7px; }
+  }
+</style>
+</head>
+<body>
+<div class="page-title">Códigos QR — Auditoría de Extintores</div>
+<p class="page-sub">Imprime, recorta y pega cada código en su ubicación correspondiente</p>
+<button class="print-btn" onclick="window.print()">🖨️ Imprimir todos los QR</button>
+<div class="grid" id="grid"></div>
+<p class="footer" id="footer"></p>
+
+<script>
+const ubicaciones = [
+  [1,"CUARTO DE PREDIO"],[2,"TECHADO DE PREDIO"],[3,"NOFF CUARTO PREDIO 1"],
+  [4,"NOFF CUARTO PREDIO 2"],[5,"PASILLO PREDIO No. 1"],[6,"PASILLO PREDIO No. 2"],
+  [7,"PASILLO PREDIO No. 3"],[8,"TALLER DE PROYECTO (E1)"],[9,"TALLER DE PROYECTO (E2)"],
+  [10,"TALLER DE SOLDADURA (E1)"],[11,"TALLER DE SOLDADURA (E2)"],[12,"SALA DE JUNTAS MTTO"],
+  [13,"OFICINA MANTENIMIENTO"],[14,"PATIO REC HUMANOS"],[15,"OFICINA DE REC HUMANOS"],
+  [16,"COMEDOR INARI"],[17,"COMEDOR INARI BARRA"],[18,"EXTERIOR BAÑO DE HOMBRE"],
+  [19,"INTERIOR DE COMEDOR"],[20,"AREA DE DESCANSO"],[22,"EXTRUDER L2"],
+  [23,"EXTRUDER L3"],[24,"EXTRUDER L4"],[25,"LAB. DE CALIDAD EXTRUDER"],
+  [26,"ALM PRODUCTO PROCESO 1"],[27,"IMPRESORA #5 SALIDA A APP"],[28,"PASILLO IMPRESORA #4 Y #5"],
+  [29,"IMPRESORA #4"],[30,"IMPRESORA #5"],[31,"IMPRESORA #5 (E2)"],
+  [32,"IMPRESORA #5 (E3)"],[33,"OFICINA DE PROGRAMACION"],[34,"EXTERIOR DE GRABADO"],
+  [35,"INTERIOR DE GRABADO"],[36,"BARNIZADORA 2"],[37,"OFICINA DE CALIDAD"],
+  [38,"RECTIFICADORA 1"],[39,"BARNIZADORA 1"],[40,"CONVERSION (E1)"],
+  [41,"CONVERSION (E2)"],[42,"CONVERSION (E3)"],[43,"CONVERSION (L9 NOFF E4)"],
+  [44,"CONVERSION (L13 NOFF E4)"],[45,"ESTACION DE SELLO"],[46,"CORTINA AMP"],
+  [48,"ALM PRODUCTO PROCESO 2"],[49,"ALMCEN MP (E1)"],[50,"ALMCEN MP (E2)"],
+  [51,"REFILADO"],[52,"ETIQUETADORA"],[53,"IMP #11 (E1)"],
+  [54,"IMP #11 (E2)"],[55,"IMP #11 (E3)"],[56,"IMP #11 NOFF (E4)"],
+  [57,"IMP #10 (E1)"],[58,"IMP #10 (E2)"],[59,"IMP #8 (E1)"],
+  [60,"IMP #8 (E2)"],[61,"IMP #8 (E3)"],[62,"IMP #9 (E1)"],
+  [63,"IMP #9 (E2)"],[64,"EXTERIOR IMP #9"],[65,"CORRUGADORA #2 (E1)"],
+  [66,"CORRUGADORA #2 (E2)"],[67,"CORRUGADORA #4 (E3)"],[68,"CUARTO ELECTRICO"],
+  [69,"RACK DE TINTAS (E1)"],[70,"RACK DE TINTAS (E2)"],[71,"TALLER MANTENIMIENTO"],
+  [72,"CORTINA MTTO"],[73,"AREA TANQUES GAS"],[74,"RECICLAJE SOLVENTES"],
+  [75,"CUARTO DE RESIDUOS NOFF #1"],[76,"CUARTO DE RESIDUOS NOFF #2"],
+  [77,"CUARTO DE RESIDUOS NOFF #3"],[78,"CUARTO DE RESIDUOS NOFF #4"],
+  [79,"ALMACEN REFACCIONES"],[80,"CORTINA EMBARQUES"],[81,"ENTRADA CASETA"],
+  [82,"OFICINA COMPRAS"],[83,"INNOVACION Y DESARROLLO"],[84,"OFICINA ADMINISTRACION"],
+  [85,"PATIO CENTRAL (E1)"],[86,"PATIO CENTRAL (E2)"],[87,"MONTACARGAS #1"],
+  [88,"MONTACARGAS #7"],[89,"MONTACARGAS #3 YALE"],[90,"MONTACARGAS ELECT. 1"],
+  [91,"MONTACARGAS ELECT. 2"]
+];
+
+const grid = document.getElementById('grid');
+
+ubicaciones.forEach(([no, ubic]) => {
+  const data = JSON.stringify({no: String(no), ubicacion: ubic});
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.innerHTML = `
+    <div class="num">No. ${no}</div>
+    <div class="qr-wrap" id="qr-${no}"></div>
+    <div class="ubic">${ubic}</div>
+    <div class="marca">ZUBEX · Extintor</div>
+  `;
+  grid.appendChild(card);
+
+  new QRCode(document.getElementById(`qr-${no}`), {
+    text: data,
+    width: 96,
+    height: 96,
+    colorDark: "#0D18A8",
+    colorLight: "#ffffff",
+    correctLevel: QRCode.CorrectLevel.M
+  });
+});
+
+document.getElementById('footer').textContent =
+  `Total: ${ubicaciones.length} códigos QR — Uso interno Zubex`;
+</script>
+</body>
+</html>
