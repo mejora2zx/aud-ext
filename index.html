@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auditoría de Extintores</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --azul:       #0D18A8;
+    --azul-oscuro:#090F7A;
+    --azul-medio: #1626CC;
+    --azul-clar1: #E8EAFF;
+    --azul-clar2: #F0F2FF;
+    --azul-clar3: #F8F9FF;
+    --blanco:     #FFFFFF;
+    --gris1:      #1A1C2E;
+    --gris2:      #4A4D6B;
+    --gris3:      #9395AD;
+    --gris4:      #D8DAE8;
+    --gris5:      #F2F3F9;
+    --rojo:       #C0392B;
+    --rojo-cl:    #FDECEA;
+    --verde:      #0F6E56;
+    --verde-cl:   #E8F5F1;
+    --ambar:      #B45309;
+    --ambar-cl:   #FEF3C7;
+    --shadow-sm:  0 1px 3px rgba(13,24,168,0.08), 0 1px 2px rgba(13,24,168,0.04);
+    --shadow-md:  0 4px 12px rgba(13,24,168,0.10), 0 2px 4px rgba(13,24,168,0.06);
+    --shadow-lg:  0 8px 24px rgba(13,24,168,0.12), 0 4px 8px rgba(13,24,168,0.08);
+    --r:  10px;
+    --rl: 16px;
+    --rx: 24px;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--gris5);
+    color: var(--gris1);
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ───────────────────────────────────── */
+  .app-header {
+    background: var(--azul);
+    padding: 0 1.5rem;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(13,24,168,0.3);
+  }
+  .app-header .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--blanco);
+  }
+  .app-header .brand-icon {
+    width: 36px; height: 36px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+  }
+  .app-header .brand-text { font-size: 16px; font-weight: 600; letter-spacing: -0.02em; }
+  .app-header .brand-sub  { font-size: 11px; opacity: 0.7; font-weight: 400; }
+
+  /* ── COUNTERS ─────────────────────────────────── */
+  .counters-bar {
+    background: var(--azul-oscuro);
+    padding: 12px 1.5rem;
+    display: flex;
+    gap: 4px;
+  }
+  .cnt {
+    flex: 1;
+    background: rgba(255,255,255,0.08);
+    border-radius: var(--r);
+    padding: 10px 12px;
+    text-align: center;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .cnt .num { font-size: 20px; font-weight: 600; color: var(--blanco); font-family: 'DM Mono', monospace; }
+  .cnt .lbl { font-size: 10px; color: rgba(255,255,255,0.6); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.06em; }
+  .cnt.ok  .num { color: #5BFFC8; }
+  .cnt.warn .num { color: #FFD166; }
+  .cnt.bad  .num { color: #FF6B6B; }
+
+  /* ── LAYOUT ───────────────────────────────────── */
+  .container { max-width: 680px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+
+  /* ── STEPS ────────────────────────────────────── */
+  .step {
+    background: var(--blanco);
+    border-radius: var(--rl);
+    margin-bottom: 1rem;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--gris4);
+    overflow: hidden;
+  }
+  .step-head {
+    background: var(--azul-clar2);
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid var(--azul-clar1);
+  }
+  .step-badge {
+    width: 24px; height: 24px;
+    background: var(--azul);
+    color: var(--blanco);
+    border-radius: 50%;
+    font-size: 12px;
+    font-weight: 600;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .step-title { font-size: 14px; font-weight: 600; color: var(--azul); }
+  .step-sub   { font-size: 12px; color: var(--gris2); margin-left: auto; }
+  .step-body  { padding: 20px; }
+
+  /* ── FORM ─────────────────────────────────────── */
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+  @media(max-width:480px){ .row { grid-template-columns: 1fr; } }
+  .field { margin-bottom: 14px; }
+  .field:last-child { margin-bottom: 0; }
+  label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--gris2);
+    display: block;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  input, select {
+    width: 100%;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    padding: 9px 12px;
+    background: var(--gris5);
+    color: var(--gris1);
+    border: 1.5px solid var(--gris4);
+    border-radius: var(--r);
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+  }
+  input:focus, select:focus {
+    border-color: var(--azul);
+    background: var(--blanco);
+    box-shadow: 0 0 0 3px rgba(13,24,168,0.1);
+  }
+  .fecha-wrap { display: flex; gap: 8px; }
+  .fecha-wrap select { flex: 1; }
+
+  /* ── NOMINA ───────────────────────────────────── */
+  .nomina-row { display: flex; gap: 10px; align-items: flex-end; }
+  .nomina-row > div:first-child { width: 130px; flex-shrink: 0; }
+  .nomina-row > div:last-child  { flex: 1; }
+  .guard-display {
+    background: var(--gris5);
+    border: 1.5px solid var(--gris4);
+    border-radius: var(--r);
+    padding: 9px 12px;
+    font-size: 14px;
+    color: var(--gris3);
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .guard-display.found     { color: var(--verde); font-weight: 500; border-color: var(--verde); background: var(--verde-cl); }
+  .guard-display.not-found { color: var(--rojo);  font-size: 13px;  border-color: var(--rojo);  background: var(--rojo-cl); }
+
+  /* ── QR SCANNER ───────────────────────────────── */
+  .qr-btn {
+    width: 100%;
+    padding: 16px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    background: var(--azul-clar2);
+    border: 2px dashed var(--azul);
+    border-radius: var(--rl);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: var(--azul);
+    margin-bottom: 14px;
+    transition: background 0.15s, transform 0.1s;
+  }
+  .qr-btn:hover  { background: var(--azul-clar1); transform: translateY(-1px); }
+  .qr-btn:active { transform: translateY(0); }
+  .qr-btn i { font-size: 22px; }
+
+  .qr-preview-wrap {
+    position: relative;
+    border-radius: var(--rl);
+    overflow: hidden;
+    margin-bottom: 14px;
+    display: none;
+    background: #000;
+    box-shadow: var(--shadow-md);
+  }
+  #qr-video { width: 100%; max-height: 260px; object-fit: cover; display: block; }
+  .qr-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+  .qr-frame {
+    width: 180px; height: 180px;
+    border: 2.5px solid var(--blanco);
+    border-radius: 14px;
+    box-shadow: 0 0 0 2000px rgba(9,15,122,0.55);
+  }
+  .qr-close {
+    position: absolute; top: 12px; right: 12px;
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(4px);
+    color: #fff; border: none; border-radius: 50%;
+    width: 34px; height: 34px;
+    cursor: pointer; font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+    pointer-events: all;
+  }
+  .qr-hint {
+    position: absolute; bottom: 14px; left: 0; right: 0;
+    text-align: center; color: rgba(255,255,255,0.85); font-size: 13px;
+  }
+
+  .ext-card {
+    background: var(--azul-clar2);
+    border: 1.5px solid var(--azul);
+    border-radius: var(--r);
+    padding: 14px 16px;
+    margin-bottom: 14px;
+    display: none;
+  }
+  .ext-title {
+    font-size: 12px; font-weight: 600; color: var(--azul);
+    text-transform: uppercase; letter-spacing: 0.06em;
+    margin-bottom: 10px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .ext-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+  .ext-pill {
+    background: var(--blanco);
+    border: 1px solid var(--azul-clar1);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 13px;
+    color: var(--gris1);
+  }
+  .ext-pill strong { color: var(--azul); font-weight: 600; }
+  .rescan {
+    font-size: 12px; color: var(--gris3);
+    cursor: pointer; text-decoration: underline;
+    margin-top: 10px; display: inline-block;
+  }
+
+  /* ── CHECKLIST ────────────────────────────────── */
+  .checks-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  @media(max-width:480px){ .checks-grid { grid-template-columns: 1fr; } }
+
+  .check-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--gris5);
+    border: 1.5px solid var(--gris4);
+    border-radius: var(--r);
+    padding: 10px 12px;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .check-item:focus-within {
+    border-color: var(--azul);
+    background: var(--azul-clar3);
+  }
+  .check-item.full { grid-column: 1 / -1; }
+  .check-item i    { font-size: 18px; color: var(--azul); flex-shrink: 0; opacity: 0.7; }
+  .check-item span { font-size: 13px; font-weight: 500; flex: 1; color: var(--gris1); }
+  .check-item select {
+    width: auto; font-size: 12px; padding: 4px 8px;
+    background: var(--blanco);
+    border-color: var(--gris4);
+    border-radius: 6px;
+    font-weight: 500;
+  }
+  .check-item select:focus { border-color: var(--azul); box-shadow: none; }
+
+  /* ── SUBMIT ───────────────────────────────────── */
+  .submit-btn {
+    width: 100%;
+    padding: 13px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    background: var(--azul);
+    color: var(--blanco);
+    border: none;
+    border-radius: var(--r);
+    cursor: pointer;
+    margin-top: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+    box-shadow: 0 4px 12px rgba(13,24,168,0.3);
+    letter-spacing: -0.01em;
+  }
+  .submit-btn:hover  { background: var(--azul-medio); box-shadow: 0 6px 16px rgba(13,24,168,0.4); transform: translateY(-1px); }
+  .submit-btn:active { transform: translateY(0); }
+  .submit-btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; box-shadow: none; }
+
+  /* ── RECORDS ──────────────────────────────────── */
+  .records-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 1.5rem 0 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .records-title { font-size: 15px; font-weight: 600; color: var(--gris1); }
+  .export-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 7px 14px;
+    background: var(--blanco);
+    border: 1.5px solid var(--azul);
+    border-radius: var(--r);
+    cursor: pointer;
+    color: var(--azul);
+    transition: background 0.15s;
+  }
+  .export-btn:hover { background: var(--azul-clar2); }
+
+  .records-wrap {
+    background: var(--blanco);
+    border-radius: var(--rl);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--gris4);
+    overflow: hidden;
+  }
+  .records-table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th {
+    background: var(--azul);
+    color: rgba(255,255,255,0.85);
+    font-weight: 500;
+    text-align: left;
+    padding: 10px 12px;
+    white-space: nowrap;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  td { padding: 10px 12px; border-bottom: 1px solid var(--gris5); white-space: nowrap; color: var(--gris1); }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--azul-clar3); }
+
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  .badge-ok   { background: var(--verde-cl); color: var(--verde); }
+  .badge-warn { background: var(--ambar-cl); color: var(--ambar); }
+  .badge-bad  { background: var(--rojo-cl);  color: var(--rojo);  }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--gris3);
+    font-size: 13px;
+  }
+  .empty-state i { font-size: 32px; display: block; margin-bottom: 8px; opacity: 0.4; }
+
+  /* ── TOAST ────────────────────────────────────── */
+  .toast {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%) translateY(8px);
+    padding: 12px 24px;
+    border-radius: 24px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: #fff;
+    z-index: 999;
+    opacity: 0;
+    transition: opacity 0.25s, transform 0.25s;
+    pointer-events: none;
+    white-space: nowrap;
+    box-shadow: var(--shadow-lg);
+  }
+  .toast.ok    { background: var(--verde); }
+  .toast.error { background: var(--rojo);  }
+  .toast.show  { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ── SPINNER ──────────────────────────────────── */
+  #save-spinner {
+    display: none;
+    width: 17px; height: 17px;
+    border: 2.5px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.65s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── OBS FIELD ────────────────────────────────── */
+  .obs-field { margin-top: 14px; }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="brand">
+    <div class="brand-icon"><i class="ti ti-fire-extinguisher"></i></div>
+    <div>
+      <div class="brand-text">Auditoría de Extintores</div>
+      <div class="brand-sub">Sistema de inspección mensual</div>
+    </div>
+  </div>
+</header>
+
+<div class="counters-bar">
+  <div class="cnt"><div class="num" id="cnt-total">0</div><div class="lbl">Total</div></div>
+  <div class="cnt ok"><div class="num" id="cnt-ok">0</div><div class="lbl">Bien</div></div>
+  <div class="cnt warn"><div class="num" id="cnt-warn">0</div><div class="lbl">Con NO</div></div>
+  <div class="cnt bad"><div class="num" id="cnt-bad">0</div><div class="lbl">Vencidos</div></div>
+</div>
+
+<div class="container">
+
+  <!-- PASO 1 -->
+  <div class="step">
+    <div class="step-head">
+      <div class="step-badge">1</div>
+      <div class="step-title">Identificar extintor</div>
+      <div class="step-sub">Escanea el QR</div>
+    </div>
+    <div class="step-body">
+      <button class="qr-btn" id="qr-btn" onclick="iniciarScanner()">
+        <i class="ti ti-qrcode"></i> Escanear código QR del extintor
+      </button>
+
+      <div class="qr-preview-wrap" id="qr-wrap">
+        <video id="qr-video" playsinline autoplay muted></video>
+        <div class="qr-overlay"><div class="qr-frame"></div></div>
+        <button class="qr-close" onclick="detenerScanner()">✕</button>
+        <div class="qr-hint">Apunta al código QR del extintor</div>
+      </div>
+
+      <div class="ext-card" id="ext-card">
+        <div class="ext-title"><i class="ti ti-circle-check"></i> Extintor identificado</div>
+        <div class="ext-pills">
+          <div class="ext-pill">No. <strong id="card-no">—</strong></div>
+          <div class="ext-pill">Ubicación: <strong id="card-loc">—</strong></div>
+          <div class="ext-pill">Agente: <strong id="card-agente">—</strong></div>
+          <div class="ext-pill">Capacidad: <strong id="card-cap">—</strong></div>
+        </div>
+        <span class="rescan" onclick="rescanear()">↩ Escanear otro extintor</span>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Fecha de última recarga</label>
+          <div class="fecha-wrap">
+            <select id="ext-mes">
+              <option value="">Mes</option>
+              <option value="01">Enero</option><option value="02">Febrero</option>
+              <option value="03">Marzo</option><option value="04">Abril</option>
+              <option value="05">Mayo</option><option value="06">Junio</option>
+              <option value="07">Julio</option><option value="08">Agosto</option>
+              <option value="09">Septiembre</option><option value="10">Octubre</option>
+              <option value="11">Noviembre</option><option value="12">Diciembre</option>
+            </select>
+            <select id="ext-anio" style="max-width:90px;"></select>
+          </div>
+        </div>
+        <div>
+          <label>Nómina del auditor</label>
+          <input type="text" id="nomina-input" placeholder="Ej. 3116" maxlength="6" oninput="buscarGuardia(this.value)">
+        </div>
+      </div>
+      <div class="field">
+        <label>Auditor</label>
+        <div class="guard-display" id="guard-display">Escribe el número de nómina</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PASO 2 -->
+  <div class="step">
+    <div class="step-head">
+      <div class="step-badge">2</div>
+      <div class="step-title">Checklist de condiciones</div>
+      <div class="step-sub">Revisa cada punto</div>
+    </div>
+    <div class="step-body">
+      <div class="checks-grid">
+        <div class="check-item"><i class="ti ti-shield-check"></i><span>Precinto</span>
+          <select class="cond-select" data-campo="precinto"><option value="SI">SI</option><option value="NO">NO</option><option value="N/A">N/A</option></select></div>
+        <div class="check-item"><i class="ti ti-lock"></i><span>Seguro</span>
+          <select class="cond-select" data-campo="seguro"><option value="SI">SI</option><option value="NO">NO</option><option value="N/A">N/A</option></select></div>
+        <div class="check-item"><i class="ti ti-mouth"></i><span>Boquilla</span>
+          <select class="cond-select" data-campo="boquilla"><option value="SI">SI</option><option value="NO">NO</option><option value="N/A">N/A</option></select></div>
+        <div class="check-item"><i class="ti ti-wave-sine"></i><span>Manguera</span>
+          <select class="cond-select" data-campo="manguera"><option value="SI">SI</option><option value="NO">NO</option><option value="N/A">N/A</option></select></div>
+        <div class="check-item"><i class="ti ti-circle"></i><span>Manómetro</span>
+          <select class="cond-select" data-campo="manometro"><option value="SI">SI</option><option value="NO">NO</option><option value="N/A">N/A</option></select></div>
+        <div class="check-item"><i class="ti ti-gauge"></i><span>Presión</span>
+          <select class="cond-select" data-campo="presion"><option value="SI">SI</option><option value="NO">NO</option><option value="N/A">N/A</option></select></div>
+        <div class="check-item"><i class="ti ti-tag"></i><span>Etiqueta</span>
+          <select class="cond-select" data-campo="etiqueta"><option value="SI">SI</option><option value="NO">NO</option><option value="N/A">N/A</option></select></div>
+        <div class="check-item"><i class="ti ti-sign-left"></i><span>Señalización</span>
+          <select class="cond-select" data-campo="senalizacion"><option value="SI">SI</option><option value="NO">NO</option><option value="N/A">N/A</option></select></div>
+        <div class="check-item full"><i class="ti ti-cylinder"></i><span>Estado Físico</span>
+          <select class="cond-select" data-campo="estado_fisico">
+            <option value="BIEN">BIEN</option>
+            <option value="VENCIDO">VENCIDO</option>
+            <option value="DAÑADO">DAÑADO</option>
+          </select></div>
+      </div>
+      <div class="obs-field">
+        <label>Observaciones</label>
+        <input type="text" id="observaciones" placeholder="Notas opcionales...">
+      </div>
+      <button class="submit-btn" id="submit-btn" onclick="guardarRegistro()">
+        <div id="save-spinner"></div>
+        <i class="ti ti-device-floppy" id="save-icon"></i>
+        <span id="save-label">Guardar registro en Excel</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- REGISTROS -->
+  <div class="records-header">
+    <div class="records-title">Registros de esta sesión</div>
+    <button class="export-btn" onclick="exportarCSV()"><i class="ti ti-download"></i> Exportar .csv</button>
+  </div>
+  <div class="records-wrap">
+    <div class="records-table-wrap">
+      <table>
+        <thead><tr>
+          <th>No.</th><th>Ubicación</th><th>Agente</th><th>Capacidad</th><th>Últ. recarga</th>
+          <th>Precinto</th><th>Seguro</th><th>Boquilla</th><th>Manguera</th>
+          <th>Manómetro</th><th>Presión</th><th>Etiqueta</th><th>Señalización</th>
+          <th>Estado</th><th>Auditor</th><th>Fecha</th>
+        </tr></thead>
+        <tbody id="records-body">
+          <tr><td colspan="16" class="empty-state">
+            <i class="ti ti-clipboard-list"></i>
+            Aún no hay registros en esta sesión
+          </td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.min.js"></script>
+<script>
+  const POWER_AUTOMATE_URL = "https://default7a3d29b2b6e142e8adceff1c622168.90.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/292f2eedefe04a16b0ee80d7aecb4165/triggers/manual/paths/invoke?api-version=1";
+
+  const GUARDIAS = {
+    "3116":"LOPEZ DEL ANGEL RICARDO ISMAEL",
+    "3311":"VALDEZ PONCE MIGUEL ANGEL",
+    "3177":"PASCUAL REYES DOMINGO",
+    "3534":"JUAREZ QUEVEDO JOSÉ LUIS",
+    "3608":"ASAEL ROCHA"
+  };
+
+  let records=[], guardiaActual=null, extActual=null;
+  let videoStream=null, scanInterval=null, scanCanvas=null, scanCtx=null;
+
+  (function(){
+    const sel=document.getElementById('ext-anio');
+    const hoy=new Date().getFullYear();
+    const op0=document.createElement('option');op0.value='';op0.textContent='Año';sel.appendChild(op0);
+    for(let y=hoy;y>=hoy-5;y--){
+      const op=document.createElement('option');op.value=y;op.textContent=y;sel.appendChild(op);
+    }
+  })();
+
+  function showToast(msg,tipo='ok'){
+    const t=document.getElementById('toast');
+    t.textContent=msg;t.className=`toast ${tipo} show`;
+    setTimeout(()=>t.className=`toast ${tipo}`,3200);
+  }
+
+  function buscarGuardia(val){
+    const d=document.getElementById('guard-display'),n=val.trim();
+    if(!n){d.textContent='Escribe el número de nómina';d.className='guard-display';guardiaActual=null;return;}
+    if(GUARDIAS[n]){d.textContent=GUARDIAS[n];d.className='guard-display found';guardiaActual={nomina:n,nombre:GUARDIAS[n]};}
+    else{d.textContent='Nómina no encontrada';d.className='guard-display not-found';guardiaActual=null;}
+  }
+
+  async function iniciarScanner(){
+    try{
+      videoStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
+      const video=document.getElementById('qr-video');
+      video.srcObject=videoStream;
+      document.getElementById('qr-wrap').style.display='block';
+      document.getElementById('qr-btn').style.display='none';
+      if(!scanCanvas){scanCanvas=document.createElement('canvas');scanCtx=scanCanvas.getContext('2d');}
+      video.onloadedmetadata=()=>{
+        scanCanvas.width=video.videoWidth;scanCanvas.height=video.videoHeight;
+        scanInterval=setInterval(()=>escanearFrame(video),200);
+      };
+    }catch(err){alert('No se pudo acceder a la cámara. Verifica los permisos.');}
+  }
+
+  function escanearFrame(video){
+    if(video.readyState!==video.HAVE_ENOUGH_DATA)return;
+    scanCtx.drawImage(video,0,0,scanCanvas.width,scanCanvas.height);
+    const imgData=scanCtx.getImageData(0,0,scanCanvas.width,scanCanvas.height);
+    const code=jsQR(imgData.data,imgData.width,imgData.height,{inversionAttempts:'dontInvert'});
+    if(code)procesarQR(code.data);
+  }
+
+  function procesarQR(texto){
+    detenerScanner();
+    try{
+      const data=JSON.parse(texto);
+      if(!data.no||!data.ubicacion)throw new Error();
+      extActual=data;mostrarCard(data);
+    }catch(e){
+      const p=texto.split('|');
+      if(p.length>=2){extActual={no:p[0],ubicacion:p[1],agente:p[2]||'',capacidad:p[3]||''};mostrarCard(extActual);}
+      else{alert('QR no reconocido. Usa los QR generados para esta app.');rescanear();}
+    }
+  }
+
+  function mostrarCard(d){
+    document.getElementById('card-no').textContent=d.no;
+    document.getElementById('card-loc').textContent=d.ubicacion;
+    document.getElementById('card-agente').textContent=d.agente||'—';
+    document.getElementById('card-cap').textContent=d.capacidad||'—';
+    document.getElementById('ext-card').style.display='block';
+    document.getElementById('qr-btn').style.display='none';
+  }
+
+  function detenerScanner(){
+    if(scanInterval){clearInterval(scanInterval);scanInterval=null;}
+    if(videoStream){videoStream.getTracks().forEach(t=>t.stop());videoStream=null;}
+    document.getElementById('qr-wrap').style.display='none';
+  }
+
+  function rescanear(){
+    extActual=null;
+    document.getElementById('ext-card').style.display='none';
+    document.getElementById('qr-btn').style.display='flex';
+  }
+
+  function getFechaRecarga(){
+    const mes=document.getElementById('ext-mes').value;
+    const anio=document.getElementById('ext-anio').value;
+    if(!mes||!anio)return null;
+    const meses=['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+    return`${meses[parseInt(mes)]} ${anio}`;
+  }
+
+  function getMesActual(){
+    const meses=['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+    return meses[new Date().getMonth()];
+  }
+
+  function calcEstado(){
+    const ef=document.querySelector('[data-campo="estado_fisico"]').value;
+    if(ef==='VENCIDO'||ef==='DAÑADO')return'bad';
+    let tieneNO=false;
+    document.querySelectorAll('.cond-select').forEach(s=>{if(s.value==='NO')tieneNO=true;});
+    return tieneNO?'warn':'ok';
+  }
+
+  async function guardarRegistro(){
+    if(!extActual){alert('Primero escanea el código QR del extintor.');return;}
+    const fecha=getFechaRecarga();
+    if(!fecha){alert('Selecciona mes y año de última recarga.');return;}
+    if(!guardiaActual){alert('Ingresa un número de nómina válido.');return;}
+
+    const condiciones={};
+    document.querySelectorAll('.cond-select').forEach(s=>{condiciones[s.dataset.campo]=s.value;});
+
+    const payload={
+      fecha:new Date().toLocaleDateString('es-MX'),
+      mes:getMesActual(),
+      no:extActual.no,
+      ubicacion:extActual.ubicacion,
+      agente:extActual.agente||'',
+      capacidad:extActual.capacidad||'',
+      ultima_recarga:fecha,
+      ...condiciones,
+      nomina:guardiaActual.nomina,
+      auditor:guardiaActual.nombre,
+      observaciones:document.getElementById('observaciones').value
+    };
+
+    const btn=document.getElementById('submit-btn');
+    const sp=document.getElementById('save-spinner');
+    const icon=document.getElementById('save-icon');
+    const lbl=document.getElementById('save-label');
+    btn.disabled=true;sp.style.display='block';icon.style.display='none';lbl.textContent='Guardando...';
+
+    try{
+      const res=await fetch(POWER_AUTOMATE_URL,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(payload)
+      });
+      if(res.ok||res.status===202){
+        records.unshift({...payload,estado:calcEstado()});
+        renderTable();updateCounters();resetForm();
+        showToast('✓ Registro guardado en Excel','ok');
+      }else{ throw new Error(`Error ${res.status}`); }
+    }catch(err){
+      showToast('Error al guardar. Revisa la conexión.','error');
+      console.error(err);
+    }
+    btn.disabled=false;sp.style.display='none';icon.style.display='';lbl.textContent='Guardar registro en Excel';
+  }
+
+  function renderTable(){
+    const tbody=document.getElementById('records-body');
+    if(!records.length){
+      tbody.innerHTML='<tr><td colspan="16" class="empty-state"><i class="ti ti-clipboard-list"></i>Aún no hay registros en esta sesión</td></tr>';
+      return;
+    }
+    tbody.innerHTML=records.map(r=>{
+      const cls=r.estado==='ok'?'ok':r.estado==='warn'?'warn':'bad';
+      return`<tr>
+        <td><strong>${r.no}</strong></td><td>${r.ubicacion}</td>
+        <td>${r.agente||'—'}</td><td>${r.capacidad||'—'}</td><td>${r.ultima_recarga}</td>
+        <td>${r.precinto||'—'}</td><td>${r.seguro||'—'}</td><td>${r.boquilla||'—'}</td>
+        <td>${r.manguera||'—'}</td><td>${r.manometro||'—'}</td><td>${r.presion||'—'}</td>
+        <td>${r.etiqueta||'—'}</td><td>${r.senalizacion||'—'}</td>
+        <td><span class="badge badge-${cls}">${r.estado_fisico}</span></td>
+        <td>${r.auditor}</td><td>${r.fecha}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  function updateCounters(){
+    document.getElementById('cnt-total').textContent=records.length;
+    document.getElementById('cnt-ok').textContent=records.filter(r=>r.estado==='ok').length;
+    document.getElementById('cnt-warn').textContent=records.filter(r=>r.estado==='warn').length;
+    document.getElementById('cnt-bad').textContent=records.filter(r=>r.estado==='bad').length;
+  }
+
+  function resetForm(){
+    document.getElementById('ext-mes').selectedIndex=0;
+    document.getElementById('ext-anio').selectedIndex=0;
+    document.getElementById('nomina-input').value='';
+    document.getElementById('observaciones').value='';
+    document.querySelectorAll('.cond-select').forEach(s=>s.selectedIndex=0);
+    guardiaActual=null;extActual=null;
+    document.getElementById('guard-display').textContent='Escribe el número de nómina';
+    document.getElementById('guard-display').className='guard-display';
+    document.getElementById('ext-card').style.display='none';
+    document.getElementById('qr-btn').style.display='flex';
+  }
+
+  function exportarCSV(){
+    if(!records.length){alert('No hay registros para exportar.');return;}
+    const cols=['No.','Ubicación','Agente','Capacidad','Última Recarga','Precinto','Seguro','Boquilla','Manguera','Manómetro','Presión','Etiqueta','Señalización','Estado Físico','Nómina','Auditor','Fecha','Observaciones'];
+    const rows=records.map(r=>[
+      r.no,r.ubicacion,r.agente,r.capacidad,r.ultima_recarga,
+      r.precinto,r.seguro,r.boquilla,r.manguera,r.manometro,r.presion,
+      r.etiqueta,r.senalizacion,r.estado_fisico,r.nomina,r.auditor,r.fecha,r.observaciones||''
+    ].map(v=>`"${(v||'').replace(/"/g,'""')}"`).join(','));
+    const csv=[cols.join(','),...rows].join('\n');
+    const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download=`auditoria_extintores_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+  }
+</script>
+</body>
+</html>
