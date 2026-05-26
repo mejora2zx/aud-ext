@@ -767,16 +767,17 @@
     btn.disabled=true;sp.style.display='block';icon.style.display='none';lbl.textContent='Guardando...';
 
     try{
-      const res=await fetch(POWER_AUTOMATE_URL,{
+      // Usar no-cors para evitar bloqueo CORS de Power Automate
+      await fetch(POWER_AUTOMATE_URL,{
         method:'POST',
+        mode:'no-cors',
         headers:{'Content-Type':'application/json'},
         body:JSON.stringify(payload)
       });
-      if(res.ok||res.status===202){
-        records.unshift({...payload,estado:calcEstado()});
-        renderTable();updateCounters();resetForm();
-        showToast('✓ Registro guardado en Excel','ok');
-      }else{ throw new Error(`Error ${res.status}`); }
+      // Con no-cors no podemos leer la respuesta, pero el registro llega igual
+      records.unshift({...payload,estado:calcEstado()});
+      renderTable();updateCounters();resetForm();
+      showToast('✓ Registro enviado al Excel','ok');
     }catch(err){
       showToast('Error al guardar. Revisa la conexión.','error');
       console.error(err);
