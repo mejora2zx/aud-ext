@@ -596,7 +596,7 @@
 
 <div class="toast" id="toast"></div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.min.js"></script>
+<!-- BarcodeDetector API nativa, sin librería externa -->
 <script>
   const POWER_AUTOMATE_URL = "https://default7a3d29b2b6e142e8adceff1c622168.90.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/292f2eedefe04a16b0ee80d7aecb4165/triggers/manual/paths/invoke?api-version=1";
 
@@ -609,7 +609,7 @@
   };
 
   let records=[], guardiaActual=null, extActual=null;
-  let videoStream=null, scanInterval=null, scanCanvas=null, scanCtx=null;
+  let videoStream=null, scanInterval=null, barcodeDetector=null;
 
   (function(){
     const sel=document.getElementById('ext-anio');
@@ -634,8 +634,17 @@
   }
 
   async function iniciarScanner(){
+    // Verificar soporte de BarcodeDetector
+    if(!('BarcodeDetector' in window)){
+      alert('Tu navegador no soporta el lector de QR nativo. Actualiza Chrome a la versión más reciente.');
+      return;
+    }
+
     try{
-      videoStream=await navigator.mediaDevices.getUserMedia({
+      // Crear detector de QR nativo
+      barcodeDetector = new BarcodeDetector({ formats: ['qr_code'] });
+
+      videoStream = await navigator.mediaDevices.getUserMedia({
         video:{
           facingMode:{exact:'environment'},
           width:{ideal:1280},
@@ -650,13 +659,9 @@
       document.getElementById('qr-wrap').style.display='block';
       document.getElementById('qr-btn').style.display='none';
 
-      if(!scanCanvas){scanCanvas=document.createElement('canvas');scanCtx=scanCanvas.getContext('2d');}
-
       video.onloadedmetadata=()=>{
-        scanCanvas.width=video.videoWidth;
-        scanCanvas.height=video.videoHeight;
         video.play();
-        scanInterval=setInterval(()=>escanearFrame(video),300);
+        scanInterval=setInterval(()=>escanearFrame(video),400);
       };
     }catch(err){
       console.error(err);
@@ -664,14 +669,14 @@
     }
   }
 
-  function escanearFrame(video){
-    if(video.readyState!==video.HAVE_ENOUGH_DATA)return;
-    scanCtx.drawImage(video,0,0,scanCanvas.width,scanCanvas.height);
-    const imgData=scanCtx.getImageData(0,0,scanCanvas.width,scanCanvas.height);
-    const code=jsQR(imgData.data,imgData.width,imgData.height,{
-      inversionAttempts:'attemptBoth'
-    });
-    if(code)procesarQR(code.data);
+  async function escanearFrame(video){
+    if(video.readyState!==video.HAVE_ENOUGH_DATA || !barcodeDetector) return;
+    try{
+      const codes = await barcodeDetector.detect(video);
+      if(codes.length > 0){
+        procesarQR(codes[0].rawValue);
+      }
+    }catch(e){ /* ignorar errores de frame */ }
   }
 
   function procesarQR(texto){
@@ -701,6 +706,7 @@
   function detenerScanner(){
     if(scanInterval){clearInterval(scanInterval);scanInterval=null;}
     if(videoStream){videoStream.getTracks().forEach(t=>t.stop());videoStream=null;}
+    barcodeDetector=null;
     document.getElementById('qr-wrap').style.display='none';
   }
 
