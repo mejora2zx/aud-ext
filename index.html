@@ -596,7 +596,7 @@
 
 <div class="toast" id="toast"></div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.min.js"></script>
+<script src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
 <script>
   const POWER_AUTOMATE_URL = "https://default7a3d29b2b6e142e8adceff1c622168.90.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/292f2eedefe04a16b0ee80d7aecb4165/triggers/manual/paths/invoke?api-version=1";
 
@@ -609,7 +609,7 @@
   };
 
   let records=[], guardiaActual=null, extActual=null;
-  let videoStream=null, scanInterval=null, scanCanvas=null, scanCtx=null;
+  let codeReader=null, scanActive=false;
 
   (function(){
     const sel=document.getElementById('ext-anio');
@@ -635,38 +635,36 @@
 
   async function iniciarScanner(){
     try{
-      videoStream=await navigator.mediaDevices.getUserMedia({
-        video:{
-          facingMode:'environment',
-          width:{ideal:1920},
-          height:{ideal:1080},
-          focusMode:'continuous',
-          advanced:[{focusMode:'continuous'}]
-        }
-      });
-      // Aplicar enfoque continuo si está disponible
-      const track = videoStream.getVideoTracks()[0];
-      if(track && track.applyConstraints){
-        track.applyConstraints({advanced:[{focusMode:'continuous'}]}).catch(()=>{});
-      }
-      const video=document.getElementById('qr-video');
-      video.srcObject=videoStream;
       document.getElementById('qr-wrap').style.display='block';
       document.getElementById('qr-btn').style.display='none';
-      if(!scanCanvas){scanCanvas=document.createElement('canvas');scanCtx=scanCanvas.getContext('2d');}
-      video.onloadedmetadata=()=>{
-        scanCanvas.width=video.videoWidth;scanCanvas.height=video.videoHeight;
-        scanInterval=setInterval(()=>escanearFrame(video),200);
-      };
-    }catch(err){alert('No se pudo acceder a la cámara. Verifica los permisos.');}
-  }
 
-  function escanearFrame(video){
-    if(video.readyState!==video.HAVE_ENOUGH_DATA)return;
-    scanCtx.drawImage(video,0,0,scanCanvas.width,scanCanvas.height);
-    const imgData=scanCtx.getImageData(0,0,scanCanvas.width,scanCanvas.height);
-    const code=jsQR(imgData.data,imgData.width,imgData.height,{inversionAttempts:'dontInvert'});
-    if(code)procesarQR(code.data);
+      codeReader = new ZXing.BrowserQRCodeReader();
+      scanActive = true;
+
+      const video = document.getElementById('qr-video');
+      const devices = await ZXing.BrowserCodeReader.listVideoInputDevices();
+      // Preferir cámara trasera
+      const backCamera = devices.find(d =>
+        d.label.toLowerCase().includes('back') ||
+        d.label.toLowerCase().includes('rear') ||
+        d.label.toLowerCase().includes('trasera') ||
+        d.label.toLowerCase().includes('environment')
+      ) || devices[devices.length - 1] || devices[0];
+
+      const deviceId = backCamera ? backCamera.deviceId : undefined;
+
+      await codeReader.decodeFromVideoDevice(deviceId, video, (result, err) => {
+        if(!scanActive) return;
+        if(result){
+          scanActive = false;
+          procesarQR(result.getText());
+          detenerScanner();
+        }
+      });
+    }catch(err){
+      console.error(err);
+      alert('No se pudo acceder a la cámara. Verifica los permisos.');
+    }
   }
 
   function procesarQR(texto){
@@ -694,8 +692,11 @@
   }
 
   function detenerScanner(){
-    if(scanInterval){clearInterval(scanInterval);scanInterval=null;}
-    if(videoStream){videoStream.getTracks().forEach(t=>t.stop());videoStream=null;}
+    scanActive = false;
+    if(codeReader){
+      try{ codeReader.reset(); }catch(e){}
+      codeReader = null;
+    }
     document.getElementById('qr-wrap').style.display='none';
   }
 
