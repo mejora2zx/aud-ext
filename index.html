@@ -496,6 +496,25 @@
         <span class="rescan" onclick="rescanear()">↩ Escanear otro extintor</span>
       </div>
 
+      <div class="field" style="margin-bottom:14px;">
+        <label>Mes de auditoría</label>
+        <select id="mes-auditoria">
+          <option value="">Seleccionar mes...</option>
+          <option value="ENERO">Enero</option>
+          <option value="FEBRERO">Febrero</option>
+          <option value="MARZO">Marzo</option>
+          <option value="ABRIL">Abril</option>
+          <option value="MAYO">Mayo</option>
+          <option value="JUNIO">Junio</option>
+          <option value="JULIO">Julio</option>
+          <option value="AGOSTO">Agosto</option>
+          <option value="SEPTIEMBRE">Septiembre</option>
+          <option value="OCTUBRE">Octubre</option>
+          <option value="NOVIEMBRE">Noviembre</option>
+          <option value="DICIEMBRE">Diciembre</option>
+        </select>
+      </div>
+
       <div class="row">
         <div>
           <label>Fecha de última recarga</label>
@@ -598,7 +617,7 @@
 
 <!-- BarcodeDetector API nativa, sin librería externa -->
 <script>
-  const POWER_AUTOMATE_URL = "https://default7a3d29b2b6e142e8adceff1c622168.90.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/292f2eedefe04a16b0ee80d7aecb4165/triggers/manual/paths/invoke?api-version=1";
+  const POWER_AUTOMATE_URL = "https://script.google.com/macros/s/AKfycbxzcRR0Wg-WwcBbP9ZpXOPWzy9kfdT0uLyc9JQz335aMwZ4EgVg7iTjUhA_OGOF0VJ9Ww/exec";
 
   const GUARDIAS = {
     "3116":"LOPEZ DEL ANGEL RICARDO ISMAEL",
@@ -739,6 +758,7 @@
 
   async function guardarRegistro(){
     if(!extActual){alert('Primero escanea el código QR del extintor.');return;}
+    if(!document.getElementById('mes-auditoria').value){alert('Selecciona el mes de auditoría.');return;}
     const fecha=getFechaRecarga();
     if(!fecha){alert('Selecciona mes y año de última recarga.');return;}
     if(!guardiaActual){alert('Ingresa un número de nómina válido.');return;}
@@ -748,7 +768,7 @@
 
     const payload={
       fecha:new Date().toLocaleDateString('es-MX'),
-      mes:getMesActual(),
+      mes:document.getElementById('mes-auditoria').value||getMesActual(),
       no:extActual.no,
       ubicacion:extActual.ubicacion,
       agente:document.getElementById('card-agente-sel').value||'',
@@ -768,16 +788,15 @@
 
     try{
       // Usar no-cors para evitar bloqueo CORS de Power Automate
-      await fetch(POWER_AUTOMATE_URL,{
+      const res = await fetch(POWER_AUTOMATE_URL, {
         method:'POST',
         mode:'no-cors',
         headers:{'Content-Type':'application/json'},
         body:JSON.stringify(payload)
       });
-      // Con no-cors no podemos leer la respuesta, pero el registro llega igual
       records.unshift({...payload,estado:calcEstado()});
       renderTable();updateCounters();resetForm();
-      showToast('✓ Registro enviado al Excel','ok');
+      showToast('✓ Registro guardado en Google Sheets','ok');
     }catch(err){
       showToast('Error al guardar. Revisa la conexión.','error');
       console.error(err);
@@ -813,6 +832,7 @@
   }
 
   function resetForm(){
+    document.getElementById('mes-auditoria').selectedIndex=0;
     document.getElementById('ext-mes').selectedIndex=0;
     document.getElementById('ext-anio').selectedIndex=0;
     document.getElementById('nomina-input').value='';
