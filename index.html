@@ -574,8 +574,6 @@
           <select class="cond-select" data-campo="manometro"><option value="SI">SI</option><option value="NO">NO</option><option value="N/A">N/A</option></select></div>
         <div class="check-item"><i class="ti ti-gauge"></i><span>Presión</span>
           <select class="cond-select" data-campo="presion"><option value="SI">SI</option><option value="NO">NO</option><option value="N/A">N/A</option></select></div>
-        <div class="check-item"><i class="ti ti-tag"></i><span>Etiqueta</span>
-          <select class="cond-select" data-campo="etiqueta"><option value="SI">SI</option><option value="NO">NO</option><option value="N/A">N/A</option></select></div>
         <div class="check-item"><i class="ti ti-sign-left"></i><span>Señalización</span>
           <select class="cond-select" data-campo="senalizacion"><option value="SI">SI</option><option value="NO">NO</option><option value="N/A">N/A</option></select></div>
         <div class="check-item full"><i class="ti ti-cylinder"></i><span>Estado Físico</span>
@@ -608,7 +606,7 @@
         <thead><tr>
           <th>No.</th><th>Ubicación</th><th>Agente</th><th>Capacidad</th><th>Últ. recarga</th>
           <th>Precinto</th><th>Seguro</th><th>Boquilla</th><th>Manguera</th>
-          <th>Manómetro</th><th>Presión</th><th>Etiqueta</th><th>Señalización</th>
+          <th>Manómetro</th><th>Presión</th><th>Señalización</th>
           <th>Estado</th><th>Auditor</th><th>Fecha</th>
         </tr></thead>
         <tbody id="records-body">
@@ -833,7 +831,7 @@
         <td>${r.agente||'—'}</td><td>${r.capacidad||'—'}</td><td>${r.ultima_recarga}</td>
         <td>${r.precinto||'—'}</td><td>${r.seguro||'—'}</td><td>${r.boquilla||'—'}</td>
         <td>${r.manguera||'—'}</td><td>${r.manometro||'—'}</td><td>${r.presion||'—'}</td>
-        <td>${r.etiqueta||'—'}</td><td>${r.senalizacion||'—'}</td>
+        <td>${r.senalizacion||'—'}</td>
         <td><span class="badge badge-${cls}">${r.estado_fisico}</span></td>
         <td>${r.auditor}</td><td>${r.fecha}</td>
       </tr>`;
@@ -865,11 +863,11 @@
 
   function exportarCSV(){
     if(!records.length){alert('No hay registros para exportar.');return;}
-    const cols=['No.','Ubicación','Agente','Capacidad','Última Recarga','Precinto','Seguro','Boquilla','Manguera','Manómetro','Presión','Etiqueta','Señalización','Estado Físico','Nómina','Auditor','Fecha','Observaciones'];
+    const cols=['No.','Ubicación','Agente','Capacidad','Última Recarga','Precinto','Seguro','Boquilla','Manguera','Manómetro','Presión','Señalización','Estado Físico','Nómina','Auditor','Fecha','Observaciones'];
     const rows=records.map(r=>[
       r.no,r.ubicacion,r.agente,r.capacidad,r.ultima_recarga,
       r.precinto,r.seguro,r.boquilla,r.manguera,r.manometro,r.presion,
-      r.etiqueta,r.senalizacion,r.estado_fisico,r.nomina,r.auditor,r.fecha,r.observaciones||''
+      r.senalizacion,r.estado_fisico,r.nomina,r.auditor,r.fecha,r.observaciones||''
     ].map(v=>`"${(v||'').replace(/"/g,'""')}"`).join(','));
     const csv=[cols.join(','),...rows].join('\n');
     const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
