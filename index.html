@@ -814,7 +814,7 @@
       });
       records.unshift({...payload,estado:calcEstado()});
       renderTable();updateCounters();resetForm();
-      showToast('✓ Registro guardado en Google Sheets','ok');
+      showToast('✓ Registro guardado en Excel','ok');
     }catch(err){
       showToast('Error al guardar. Revisa la conexión.','error');
       console.error(err);
